@@ -12,4 +12,8 @@ app.use('/tournaments', tournamentRouter)
 app.use('/matches', matchRouter)
 app.use('/teams', teamRouter)
 
+app.get('/', (_req, res) => {
+  res.send('Runnin...')
+})
+
 app.listen(8000, () => console.log('running...'))
