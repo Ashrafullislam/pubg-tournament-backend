@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
   try {
     await mongoClient.connect()
     const result = await database.collection('tournaments').insertOne(req.body)
-    result?.insertedId ? res.json({ success: true }) : res.json({ success: false })
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
   } catch (e) {
     console.error(e)
     res.sendStatus(500)
