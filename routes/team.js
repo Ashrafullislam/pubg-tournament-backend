@@ -5,27 +5,37 @@ const router = express.Router()
 
 router.get('/', async (_req, res) => {
   try {
-    await mongoClient.connect()
-    const result = await database.collection('teams').find().toArray()
+    const result = await database.collection('teams').aggregate([
+      {
+        $lookup: {
+          from: 'players',
+          localField: 'players',
+          foreignField: '_id',
+          as: 'players'
+        }
+      }
+    ]).toArray()
     res.json(result)
   } catch (e) {
     console.error(e)
     res.sendStatus(500)
   } finally {
-    await mongoClient.close()
   }
 })
 
 router.post('/', async (req, res) => {
+  const bodyData = structuredClone(req.body)
+
   try {
-    await mongoClient.connect()
-    const result = await database.collection('teams').insertOne(req.body)
+    const playerResult = await database.collection('players').insertMany(req.body.players)
+    const playerIds = Object.values(playerResult.insertedIds)
+    bodyData.players = playerIds
+    const result = await database.collection('teams').insertOne(bodyData)
     result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
   } catch (e) {
     console.error(e)
     res.sendStatus(500)
   } finally {
-    await mongoClient.close()
   }
 })
 
