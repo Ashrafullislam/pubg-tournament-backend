@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  if (!req.body['tournament-id']) return res.send(400)
+  if (!req.body['tournament-id']) return res.sendStatus(400)
   const bodyData = structuredClone(req.body)
   bodyData['tournament-id'] = new ObjectId(bodyData['tournament-id'])
 
