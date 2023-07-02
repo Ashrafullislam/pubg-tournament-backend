@@ -11,8 +11,8 @@ async function getMatches(req, res) {
         $match: {
           $or: [
             { 'stage-id': new ObjectId(req.query['stage-id']) },
-            { '_id': new ObjectId(req.params.id) },
-            { '_id': { $exists: true } }
+            // { '_id': new ObjectId(req.params.id) },
+            // { '_id': { $exists: true } }
           ]
         }
       },
