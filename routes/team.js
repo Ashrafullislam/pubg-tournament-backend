@@ -1,5 +1,6 @@
 import express from 'express'
 import mongoClient, { database } from '../models/database.js'
+import { ObjectId } from 'mongodb'
 
 const router = express.Router()
 
@@ -22,6 +23,30 @@ router.get('/', async (_req, res) => {
   } finally {
   }
 })
+
+router.get('/:id', async (_req, res) => {
+  try {
+    const result = await database.collection('teams').aggregate([
+      {
+        $match: { '_id': new ObjectId(req.params.id) }
+      },
+      {
+        $lookup: {
+          from: 'players',
+          localField: 'players',
+          foreignField: '_id',
+          as: 'players'
+        }
+      }
+    ]).toArray()
+    res.json(result)
+  } catch (e) {
+    console.error(e)
+    res.sendStatus(500)
+  } finally {
+  }
+})
+
 
 router.post('/', async (req, res) => {
   const bodyData = structuredClone(req.body)
