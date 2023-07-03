@@ -6,15 +6,6 @@ const router = express.Router()
 
 async function getMatches(req, res) {
   const aggArray = [
-    {
-        $match: {
-          $or: [
-            { 'stage-id': new ObjectId(req.query['stage-id']) },
-            // { '_id': new ObjectId(req.params.id) },
-            // { '_id': { $exists: true } }
-          ]
-        }
-      },
       {
         $lookup: {
           from: 'teams',
@@ -34,7 +25,10 @@ async function getMatches(req, res) {
         }
       }
   ]
-  if(req.params.id) aggArray.splice(0, 1, { $match: { '_id': new ObjectId(req.params.id) } })
+  
+  if (req.params.id) aggArray.splice(0, 0, { $match: { '_id': new ObjectId(req.params.id) } })
+  else if (req.query['stage-id']) aggArray.splice(0, 0, { $match: { 'stage-id': new ObjectId(req.query['stage-id']) } })
+        
   try {
     const result = await database.collection('matches').aggregate(aggArray).toArray()
     res.json(result)
