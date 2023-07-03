@@ -34,15 +34,7 @@ async function getMatches(req, res) {
         }
       }
   ]
-  if(req.params.id) aggArray.with(0, {
-        $match: {
-          $or: [
-            // { 'stage-id': new ObjectId(req.query['stage-id']) },
-            { '_id': new ObjectId(req.params.id) },
-            // { '_id': { $exists: true } }
-          ]
-        }
-      })
+  if(req.params.id) aggArray.with(0, { $match: { '_id': new ObjectId(req.params.id) } })
   try {
     const result = await database.collection('matches').aggregate(aggArray).toArray()
     res.json(result)
