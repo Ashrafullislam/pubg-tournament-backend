@@ -5,9 +5,8 @@ import { ObjectId } from 'mongodb'
 const router = express.Router()
 
 async function getMatches(req, res) {
-  try {
-    const result = await database.collection('matches').aggregate([
-      {
+  const aggArray = [
+    {
         $match: {
           $or: [
             { 'stage-id': new ObjectId(req.query['stage-id']) },
@@ -34,7 +33,18 @@ async function getMatches(req, res) {
           ]
         }
       }
-    ]).toArray()
+  ]
+  if(req.params.id) aggArray.with(0, {
+        $match: {
+          $or: [
+            // { 'stage-id': new ObjectId(req.query['stage-id']) },
+            { '_id': new ObjectId(req.params.id) },
+            // { '_id': { $exists: true } }
+          ]
+        }
+      })
+  try {
+    const result = await database.collection('matches').aggregate(aggArray).toArray()
     res.json(result)
   } catch (e) {
     console.error(e)
