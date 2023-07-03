@@ -34,7 +34,7 @@ async function getMatches(req, res) {
         }
       }
   ]
-  if(req.params.id) aggArray.with(0, { $match: { '_id': new ObjectId(req.params.id) } })
+  if(req.params.id) aggArray.splice(0, 1, { $match: { '_id': new ObjectId(req.params.id) } })
   try {
     const result = await database.collection('matches').aggregate(aggArray).toArray()
     res.json(result)
