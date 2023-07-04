@@ -67,7 +67,7 @@ router.post('/kills', async (req, res) => {
       { "_id": new ObjectId(req.body['player-id']) },
       {
         $set: {
-          matchId: req.body.kills
+          [matchId]: req.body.kills
         }
       },
       { upsert: true }
