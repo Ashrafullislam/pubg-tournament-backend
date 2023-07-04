@@ -62,11 +62,12 @@ router.post('/kills', async (req, res) => {
   if (!req.body['match-id'] || !req.body['player-id']) return res.sendStatus(400)
 
   try {
+    const matchId = req.body['match-id']
     const result = await database.collection('players').updateOne(
       { "_id": new ObjectId(req.body['player-id']) },
       {
         $set: {
-          'match-id': req.body.kills
+          matchId: req.body.kills
         }
       },
       { upsert: true }
