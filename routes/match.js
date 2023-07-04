@@ -85,11 +85,7 @@ router.post('/add-team', async (req, res) => {
     const result = await database.collection('matches').updateOne(
       { _id: new ObjectId(req.body['match-id']) },
       {
-        $set:
-        {
-          teams:
-            { $each: teams }
-        }
+        $set: { teams }
       },
       { upsert: true })
     result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
