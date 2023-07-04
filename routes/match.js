@@ -62,12 +62,11 @@ router.post('/kills', async (req, res) => {
   if (!req.body['match-id'] || !req.body['player-id']) return res.sendStatus(400)
 
   try {
-    const matchId = req.body['match-id']
     const result = await database.collection('players').updateOne(
       { "_id": new ObjectId(req.body['player-id']) },
       {
         $set: {
-          [matchId]: req.body.kills
+          [req.body['match-id']]: req.body.kills
         }
       },
       { upsert: true }
@@ -86,7 +85,7 @@ router.post('/add-team', async (req, res) => {
     const result = await database.collection('matches').updateOne(
       { _id: new ObjectId(req.body['match-id']) },
       {
-        $addToSet:
+        $set:
         {
           teams:
             { $each: teams }
