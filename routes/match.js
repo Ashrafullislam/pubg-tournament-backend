@@ -58,6 +58,25 @@ router.post('/', async (req, res) => {
   }
 })
 
+router.post('/kills', async (req, res) => {
+  if (!req.body['match-id'] || !req.body['player-id']) return res.sendStatus(400)
+
+  try {
+    const result = await database.collection('players').updateOne(
+      { "_id": new ObjectId(req.body['player-id']) },
+      {
+        $setOnInsert: {
+          'match-id': req.body.kills
+        }
+      },
+      { upsert: true }
+    )
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+  }
+})
+
 router.post('/add-team', async (req, res) => {
   if (!req.body['match-id']) return res.sendStatus(400)
   const teams = structuredClone(req.body.teams).map(team => new ObjectId(team))
