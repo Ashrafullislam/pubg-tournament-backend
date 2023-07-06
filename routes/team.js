@@ -1,5 +1,5 @@
 import express from 'express'
-import mongoClient, { database } from '../models/database.js'
+import { database } from '../models/database.js'
 import { ObjectId } from 'mongodb'
 
 const router = express.Router()
@@ -61,6 +61,16 @@ router.post('/', async (req, res) => {
     console.error(e)
     res.sendStatus(500)
   } finally {
+  }
+})
+
+router.delete('/', async (req, res) => {
+  try {
+    const result = await database.collection('players').deleteOne({ '_id': new ObjectId(req.body.id) })
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
   }
 })
 
