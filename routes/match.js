@@ -44,7 +44,7 @@ router.get('/', getMatches)
 router.get('/:id', getMatches)
 
 router.post('/', async (req, res) => {
-  if (!req.body.name || !req.body['stage-id']) return res.sendStatus(400)
+  if (!req.body['stage-id']) return res.sendStatus(400)
   const bodyData = structuredClone(req.body)
   bodyData['stage-id'] = new ObjectId(bodyData['stage-id'])
 
