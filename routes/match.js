@@ -114,9 +114,9 @@ router.post('/rank', async (req, res) => {
   }
 })
 
-router.delete('/', async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const result = await database.collection('matches').deleteOne({ '_id': new ObjectId(req.body.id) })
+    const result = await database.collection('matches').deleteOne({ '_id': new ObjectId(req.params.id) })
     result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
   } catch (e) {
     console.log(e)
