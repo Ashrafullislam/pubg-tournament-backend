@@ -114,4 +114,14 @@ router.post('/rank', async (req, res) => {
   }
 })
 
+router.delete('/', async (req, res) => {
+  try {
+    const result = await database.collection('matches').deleteOne({ '_id': new ObjectId(req.body.id) })
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
 export default router
