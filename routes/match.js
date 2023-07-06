@@ -44,7 +44,7 @@ router.get('/', getMatches)
 router.get('/:id', getMatches)
 
 router.post('/', async (req, res) => {
-  if (!req.body.name || !req.body['stage-id']) return res.sendStatus(400)
+  if (!req.body['stage-id']) return res.sendStatus(400)
   const bodyData = structuredClone(req.body)
   bodyData['stage-id'] = new ObjectId(bodyData['stage-id'])
 
@@ -107,6 +107,16 @@ router.post('/rank', async (req, res) => {
       },
       { upsert: true }
     )
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
+router.delete('/', async (req, res) => {
+  try {
+    const result = await database.collection('matches').deleteOne({ '_id': new ObjectId(req.body.id) })
     result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
   } catch (e) {
     console.log(e)
