@@ -124,4 +124,29 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
+router.post('/dead', async (req, res) => {
+  const addToDead = {
+    $push: {
+      dead: req.body['player-id']
+    }
+  }
+  const removeFromDead = {
+    $pull: {
+      dead: req.body['player-id']
+    }
+  }
+
+  try {
+    const result = await database.collection('matches').updateOne(
+      { '_id': new ObjectId(req.body['match-id']) },
+      req.body.dead ? addToDead : removeFromDead,
+      { upsert: true }
+    )
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
 export default router
