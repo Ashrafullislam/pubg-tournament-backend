@@ -128,7 +128,7 @@ router.post('/dead', async (req, res) => {
   const addToDead = {
     $addToSet: {
       dead: {
-        $each: req.body['player-id']
+        $each: [req.body['player-id']]
       }
     }
   }
