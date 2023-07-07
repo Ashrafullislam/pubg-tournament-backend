@@ -126,8 +126,10 @@ router.delete('/:id', async (req, res) => {
 
 router.post('/dead', async (req, res) => {
   const addToDead = {
-    $push: {
-      dead: req.body['player-id']
+    $addToSet: {
+      dead: {
+        $each: req.body['player-id']
+      }
     }
   }
   const removeFromDead = {
