@@ -17,6 +17,17 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.get('/:id', async (req, res) => {
+  try {
+    const result = await database.collection('stages').find({ _id: req.params.id }).toArray()
+    res.json(result)
+  } catch (e) {
+    console.error(e)
+    res.sendStatus(500)
+  } finally {
+  }
+})
+
 router.post('/', async (req, res) => {
   if (!req.body['tournament-id']) return res.sendStatus(400)
   const bodyData = structuredClone(req.body)

@@ -17,7 +17,7 @@ router.get('/', async (_req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const result = await database.collection('tournaments').find({ '_id': req.params.id }).toArray()
+    const result = await database.collection('tournaments').find({ '_id': new ObjectId(req.params.id) }).toArray()
     res.json(result)
   } catch (e) {
     console.error(e)
