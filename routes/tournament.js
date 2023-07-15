@@ -15,6 +15,17 @@ router.get('/', async (_req, res) => {
   }
 })
 
+router.get('/:id', async (req, res) => {
+  try {
+    const result = await database.collection('tournaments').find({ '_id': req.params.id }).toArray()
+    res.json(result)
+  } catch (e) {
+    console.error(e)
+    res.sendStatus(500)
+  } finally {
+  }
+})
+
 router.post('/', async (req, res) => {
   if (!req.body.name || !req.body.logo) return res.sendStatus(400)
 
