@@ -67,7 +67,7 @@ router.post('/kills', async (req, res) => {
       {
         $set: { 'kills.$.count': req.body.kills }
       },
-      { upsert: true }
+      { multi: true, upsert: true }
     )
     result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
   } catch (e) {
