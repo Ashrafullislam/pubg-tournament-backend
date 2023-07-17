@@ -62,7 +62,7 @@ router.post('/kills', async (req, res) => {
   if (!req.body['match-id'] || !req.body['player-id']) return res.sendStatus(400)
 
   try {
-    const result = await database.collection('players').updateOne(
+    const result = await database.collection('players').findOneAndUpdate(
       { "_id": new ObjectId(req.body['player-id']), 'kills.match-id': req.body['match-id'] },
       {
         $inc: { 'kills.$.count': 1 }
