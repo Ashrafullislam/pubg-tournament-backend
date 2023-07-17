@@ -63,7 +63,7 @@ router.post('/kills', async (req, res) => {
 
   try {
     const result = await database.collection('players').updateOne(
-      { "_id": new ObjectId(req.body['player-id']), 'kills.match-id': req.body['match-id'] },
+      { "_id": new ObjectId(req.body['player-id']), 'kills.match-id': { $exist: false } },
       {
         $set: { 'kills.$.count': req.body.kills }
       },
