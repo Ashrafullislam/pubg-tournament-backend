@@ -60,14 +60,15 @@ router.post('/', async (req, res) => {
 
 router.post('/kills', async (req, res) => {
   if (!req.body['match-id'] || !req.body['player-id']) return res.sendStatus(400)
+  const objectKey = `kills.${req.body['match-id']}`
 
   try {
     const result = await database.collection('players').updateOne(
-      { "_id": new ObjectId(req.body['player-id']), 'kills.match-id': { $exists: false } },
+      { "_id": new ObjectId(req.body['player-id']) },
       {
-        $set: { 'kills.$.count': req.body.kills }
+        $set: { [objectKey]: req.body.kills }
       },
-      { multi: true, upsert: true }
+      { upsert: true }
     )
     result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
   } catch (e) {
