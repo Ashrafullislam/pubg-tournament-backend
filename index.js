@@ -4,6 +4,7 @@ import tournamentRouter from './routes/tournament.js'
 import matchRouter from './routes/match.js'
 import teamRouter from './routes/team.js'
 import stageRouter from './routes/group-stage.js'
+import standingRouter from './routes/standing.js'
 
 const app = express()
 
@@ -13,6 +14,7 @@ app.use('/tournaments', tournamentRouter)
 app.use('/matches', matchRouter)
 app.use('/teams', teamRouter)
 app.use('/stages', stageRouter)
+app.use('/standings', standingRouter)
 
 app.get('/', (_req, res) => {
   res.send('Running...')
