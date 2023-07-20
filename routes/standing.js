@@ -33,7 +33,7 @@ router.get('/match', async (req, res) => {
   }
 })
 
-router.get('/mvp', async (req, res) => {
+router.get('/fragger', async (req, res) => {
   try {
     const players = []
     const result = await database.collection('matches').aggregate([
