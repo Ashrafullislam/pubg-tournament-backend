@@ -33,4 +33,39 @@ router.get('/match', async (req, res) => {
   }
 })
 
+router.get('/mvp', async (req, res) => {
+  try {
+    const players = []
+    const result = await database.collection('matches').aggregate([
+      {
+        $match: { _id: new ObjectId(req.query['match-id']) }
+      },
+      {
+        $lookup: {
+          from: 'teams',
+          localField: 'teams',
+          foreignField: '_id',
+          as: 'teams',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'players',
+                localField: 'players',
+                foreignField: '_id',
+                as: 'players'
+              }
+            }
+          ]
+        }
+      }
+    ]).toArray()
+    result.forEach(match => match.teams.forEach(team => team.players.forEach(player => players.push(player))))
+    const sortedPlayers = players.sort((a, b) => b?.kills?.[req.query['match-id']] - a?.kills?.[req.query['match-id']])
+    res.json(sortedPlayers)
+  } catch (e) {
+    console.error(e)
+    res.sendStatus(500)
+  }
+})
+
 export default router
