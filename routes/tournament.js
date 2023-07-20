@@ -1,5 +1,5 @@
 import express from 'express'
-import mongoClient, { database } from '../models/database.js'
+import { database } from '../models/database.js'
 import { ObjectId } from 'mongodb'
 
 const router = express.Router()
@@ -12,6 +12,48 @@ router.get('/', async (_req, res) => {
     console.error(e)
     res.sendStatus(500)
   } finally {
+  }
+})
+
+router.get('/all', async (req, res) => {
+  try {
+    const result = await database.collection('tournaments').aggregate([
+      {
+        $project: { 'logo': 0 }
+      },
+      {
+        $lookup: {
+          from: 'stages',
+          localField: '_id',
+          foreignField: 'tournament-id',
+          as: 'stages',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'matches',
+                localField: '_id',
+                foreignField: 'stage-id',
+                as: 'matches'
+              }
+            },
+            {
+              $project: {
+                matches: { 'stage-id': 0, logo: 0 }
+              }
+            }
+          ]
+        }
+      },
+      {
+        $project: {
+          stages: { 'tournament-id': 0 }
+        }
+      }
+    ]).toArray()
+    res.json(result)
+  } catch (e) {
+    console.error(e)
+    res.sendStatus(500)
   }
 })
 
