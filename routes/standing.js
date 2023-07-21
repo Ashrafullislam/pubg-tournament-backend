@@ -68,4 +68,73 @@ router.get('/fragger', async (req, res) => {
   }
 })
 
+router.get('/overall', async (req, res) => {
+  try {
+    const matches = []
+    const players = []
+    const result = await database.collection('stages').aggregate([
+      {
+        $match: { 'tournament-id': new ObjectId(req.query['tournament-id']) }
+      },
+      {
+        $lookup: {
+          from: 'matches',
+          localField: '_id',
+          foreignField: 'stage-id',
+          as: 'matches',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'teams',
+                localField: 'teams',
+                foreignField: '_id',
+                as: 'teams',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'players',
+                      localField: 'players',
+                      foreignField: '_id',
+                      as: 'players'
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]).toArray()
+
+    result.forEach(stage => {
+      stage.matches.forEach(match => {
+        matches.push(match._id)
+        match.teams.forEach(team => {
+          team.players.forEach(player => {
+            players.push(player._id)
+          })
+        })
+      })
+    })
+
+    const playersResult = await database.collection('players').find({
+      '_id': { $in: players.map(player => new ObjectId(player)) }
+    }).toArray()
+    const newPlayers = playersResult.map(player => {
+      const newPlayer = structuredClone(player)
+      newPlayer._id = player._id
+      newPlayer.kills = Object.keys(newPlayer.kills).reduce((a, b) => {
+        return player.kills[a] || 0 + player.kills[b] || 0
+      }, 0)
+      return newPlayer
+    })
+    const sortedPlayers = newPlayers.sort((a, b) => b.kills - a.kills)
+
+    res.send(sortedPlayers)
+  } catch (e) {
+    console.error(e)
+    res.sendStatus(500)
+  }
+})
+
 export default router
