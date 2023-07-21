@@ -120,12 +120,14 @@ router.get('/overall', async (req, res) => {
     const playersResult = await database.collection('players').find({
       '_id': { $in: players.map(player => new ObjectId(player)) }
     }).toArray()
+
+    const newMatches = matches.map(match => match.toString())
     const newPlayers = playersResult.map(player => {
       const newPlayer = structuredClone(player)
       newPlayer._id = player._id
       newPlayer.kills = Object.keys(newPlayer.kills).reduce((a, b) => {
-        return player.kills[a] || 0 + player.kills[b] || 0
-      }, 0)
+        return newMatches.includes(a) ? player.kills[a] : 0 || 0 + newMatches.includes(b) ? player.kills[b] : 0 || 0
+      }, Object.keys(newPlayer.kills).at(0))
       return newPlayer
     })
     const sortedPlayers = newPlayers.sort((a, b) => b.kills - a.kills)
