@@ -150,4 +150,21 @@ router.post('/dead', async (req, res) => {
   }
 })
 
+router.post('/points', async (req, res) => {
+  try {
+    const objectKey = `points.${req.body['match-id']}`
+    const result = await database.collection('teams').updateOne(
+      { '_id': new ObjectId(req.body['team-id']) },
+      {
+        $set: { [objectKey]: req.body.points }
+      },
+      { upsert: true }
+    )
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
 export default router
