@@ -17,12 +17,24 @@ router.get('/match', async (req, res) => {
           from: 'teams',
           localField: 'teams',
           foreignField: '_id',
-          as: 'teams'
+          as: 'teams',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'players',
+                localField: 'players',
+                foreignField: '_id',
+                as: 'players'
+              }
+            }
+          ]
         }
       }
     ]).toArray()
     result.at(0).teams.forEach(team => teams.push({ id: team._id, name: team.name }))
-    teams.forEach(team => standings[result.at(0)[team.id]] = result.at(0).teams.find(i => i._id === team.id))
+    teams.forEach(team => {
+      standings[result.at(0)[team.id]] = result.at(0).teams.find(i => i._id === team.id)
+    })
     res.json(standings)
     // res.json(result)
     // result.at(0).teams.forEach(team => teams.push(team.name))
