@@ -17,12 +17,24 @@ router.get('/match', async (req, res) => {
           from: 'teams',
           localField: 'teams',
           foreignField: '_id',
-          as: 'teams'
+          as: 'teams',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'players',
+                localField: 'players',
+                foreignField: '_id',
+                as: 'players'
+              }
+            }
+          ]
         }
       }
     ]).toArray()
     result.at(0).teams.forEach(team => teams.push({ id: team._id, name: team.name }))
-    teams.forEach(team => standings[result.at(0)[team.id]] = result.at(0).teams.find(i => i._id === team.id))
+    teams.forEach(team => {
+      standings[result.at(0)[team.id]] = result.at(0).teams.find(i => i._id === team.id)
+    })
     res.json(standings)
     // res.json(result)
     // result.at(0).teams.forEach(team => teams.push(team.name))
@@ -120,12 +132,14 @@ router.get('/overall', async (req, res) => {
     const playersResult = await database.collection('players').find({
       '_id': { $in: players.map(player => new ObjectId(player)) }
     }).toArray()
+
+    const newMatches = matches.map(match => match.toString())
     const newPlayers = playersResult.map(player => {
       const newPlayer = structuredClone(player)
       newPlayer._id = player._id
       newPlayer.kills = Object.keys(newPlayer.kills).reduce((a, b) => {
-        return player.kills[a] || 0 + player.kills[b] || 0
-      }, 0)
+        return newMatches.includes(a) ? player.kills[a] : 0 || 0 + newMatches.includes(b) ? player.kills[b] : 0 || 0
+      }, Object.keys(newPlayer.kills).at(0))
       return newPlayer
     })
     const sortedPlayers = newPlayers.sort((a, b) => b.kills - a.kills)
