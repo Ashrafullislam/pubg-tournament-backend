@@ -40,7 +40,7 @@ router.get('/match', async (req, res) => {
       newObj.rank = Number(index)
       return newObj
     })
-    res.json(newStandings.sort((a, b) => b.rank - a.rank))
+    res.json(newStandings)
     // res.json(result)
     // result.at(0).teams.forEach(team => teams.push(team.name))
   } catch (e) {
