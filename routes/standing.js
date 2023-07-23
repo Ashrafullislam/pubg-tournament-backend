@@ -35,7 +35,8 @@ router.get('/match', async (req, res) => {
     teams.forEach(team => {
       standings[result.at(0)[team.id]] = result.at(0).teams.find(i => i._id === team.id)
     })
-    res.json(standings)
+    const newStandings = Object.keys(standings).map(index => standings[index].rank = index)
+    res.json(newStandings)
     // res.json(result)
     // result.at(0).teams.forEach(team => teams.push(team.name))
   } catch (e) {
