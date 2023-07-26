@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
   const tournamentId = req.query['tournament-id']
 
   try {
-    const result = await database.collection('stages').find(tournamentId ? { 'tournament-id': new ObjectId(tournamentId) } : {}).toArray()
+    const result = await database.collection('stages').find(tournamentId ? { 'tournament-id': new ObjectId(tournamentId) } : {}).skip((req.query['page-number'] || 0) * 10).limit(10).toArray()
     res.json(result)
   } catch (e) {
     console.error(e)

@@ -30,7 +30,7 @@ async function getMatches(req, res) {
   else if (req.query['stage-id']) aggArray.splice(0, 0, { $match: { 'stage-id': new ObjectId(req.query['stage-id']) } })
 
   try {
-    const result = await database.collection('matches').aggregate(aggArray).toArray()
+    const result = await database.collection('matches').aggregate(aggArray).skip((req.query['page-number'] || 0) * 10).limit(10).toArray()
     res.json(result)
   } catch (e) {
     console.error(e)
