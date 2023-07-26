@@ -91,4 +91,17 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
+router.put('/', async (req, res) => {
+  try {
+    const result = await database.collection('tournaments').updateOne(
+      { '_id': new ObjectId(req.query['tournament-id']) },
+      { $set: req.body }
+    )
+    result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
 export default router
