@@ -37,7 +37,7 @@ router.get('/match', async (req, res) => {
     })
     const newStandings = Object.keys(standings).map(index => {
       const newObj = standings[index]
-      newObj.rank = index
+      newObj.rank = Number(index)
       return newObj
     })
     res.json(newStandings)
