@@ -4,9 +4,9 @@ import { ObjectId } from 'mongodb'
 
 const router = express.Router()
 
-router.get('/', async (_req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const result = await database.collection('tournaments').find().toArray()
+    const result = await database.collection('tournaments').find().skip(req.query['page-number'] * 10).limit(10).toArray()
     res.json(result)
   } catch (e) {
     console.error(e)
