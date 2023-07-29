@@ -179,4 +179,29 @@ router.put('/', async (req, res) => {
   }
 })
 
+router.get('/next', async (req, res) => {
+  try {
+    const result = await database.collection('matches').find().toArray()
+    const arrayWithDateAdded = result.map(match => {
+      const newMatch = structuredClone(match)
+      const date = newMatch.date.split('-').reverse().join('-')
+      const time = newMatch.time
+      const dateAndTime = new Date(date + 'T' + time)
+      newMatch.dateAndTime = dateAndTime
+      return newMatch
+    })
+    arrayWithDateAdded.sort((a, b) => b.dateAndTime - a.dateAndTime)
+    const currentMatchIndex = arrayWithDateAdded.findIndex(i => i._id === req.body['match-id'])
+    const removedDateAndTime = arrayWithDateAdded.map(match => {
+      const newMatch = structuredClone(match)
+      delete newMatch.dateAndTime
+      return newMatch
+    })
+    res.send(removedDateAndTime[currentMatchIndex + 1])
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
 export default router
