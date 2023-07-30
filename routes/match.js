@@ -30,7 +30,7 @@ async function getMatches(req, res) {
   else if (req.query['stage-id']) aggArray.splice(0, 0, { $match: { 'stage-id': new ObjectId(req.query['stage-id']) } })
 
   try {
-    const result = await database.collection('matches').aggregate(aggArray).toArray()
+    const result = await database.collection('matches').aggregate(aggArray).skip((req.query['page-number'] || 0) * 10).limit(10).toArray()
     res.json(result)
   } catch (e) {
     console.error(e)
@@ -173,6 +173,31 @@ router.put('/', async (req, res) => {
       { $set: req.body }
     )
     result?.acknowledged ? res.json({ success: true }) : res.json({ success: false })
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
+router.get('/next', async (req, res) => {
+  try {
+    const result = await database.collection('matches').find().toArray()
+    const arrayWithDateAdded = result.map(match => {
+      const newMatch = structuredClone(match)
+      const date = newMatch.date.split('-').reverse().join('-')
+      const time = newMatch.time
+      const dateAndTime = new Date(date + 'T' + time)
+      newMatch.dateAndTime = dateAndTime
+      return newMatch
+    })
+    arrayWithDateAdded.sort((a, b) => b.dateAndTime - a.dateAndTime)
+    const currentMatchIndex = arrayWithDateAdded.findIndex(i => i._id === req.body['match-id'])
+    const removedDateAndTime = arrayWithDateAdded.map(match => {
+      const newMatch = structuredClone(match)
+      delete newMatch.dateAndTime
+      return newMatch
+    })
+    res.send(removedDateAndTime[currentMatchIndex + 1])
   } catch (e) {
     console.log(e)
     res.sendStatus(500)
