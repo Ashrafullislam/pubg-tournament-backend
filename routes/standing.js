@@ -87,6 +87,46 @@ router.get('/fragger', async (req, res) => {
 
 router.get('/overall', async (req, res) => {
   try {
+    const teams2 = []
+    const matchIds = []
+    const result2 = await database.collection('matches').aggregate([
+      {
+        $match: { 'stage-id': new ObjectId(req.query['stage-id']) }
+      },
+      {
+        $lookup: {
+          from: 'teams',
+          localField: 'teams',
+          foreignField: '_id',
+          as: 'teams'
+        }
+      }
+    ]).toArray()
+    result2.forEach(match => match.teams.forEach(team => teams2.push(team)))
+    result2.forEach(match => matchIds.push(match._id))
+    const newMatchIds = matchIds.map(id => id.toString())
+    const filteredTeams = teams2.map(team => {
+      const newTeam = structuredClone(team)
+      const pointsArray = Object.keys(newTeam?.points).map(point => ({ matchId: point, points: newTeam?.points?.[point] }))
+      const newPointsArray = pointsArray.filter(arr => newMatchIds.includes(arr.matchId))
+      newTeam._id = team._id
+      delete newTeam.players
+      newTeam.points = newPointsArray.reduce((a, b) => ((a.points || a) + b.points), 0)
+      return newTeam
+    })
+    const sortedTeams = filteredTeams.sort((a, b) => b.points - a.points)
+    let mergedTeams = []
+    sortedTeams.forEach(team => {
+      if (!mergedTeams.some(mergedTeam => mergedTeam._id.toString() === team._id.toString())) mergedTeams.push(team)
+      else {
+        const arrIndex = mergedTeams.findIndex(mergedTeam => mergedTeam._id.toString() === team._id.toString())
+        const objToBeReplaced = structuredClone(mergedTeams[arrIndex])
+        objToBeReplaced.points += team.points
+        mergedTeams.splice(arrIndex, 1, objToBeReplaced)
+      }
+    })
+    return res.send(mergedTeams)
+
     const matches = []
     const players = []
     const result = await database.collection('stages').aggregate([
@@ -155,5 +195,14 @@ router.get('/overall', async (req, res) => {
     res.sendStatus(500)
   }
 })
+
+// router.get('/overall-standing', async (req, res) => {
+//   const result = await database.collection('tournaments').aggregate([
+//     {
+//       $match: { '_id': new ObjectId(req.query['tournament-id']) }
+//     }
+//   ]).toArray()
+//   res.send(result)
+// })
 
 export default router
