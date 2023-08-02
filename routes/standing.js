@@ -98,12 +98,52 @@ router.get('/overall', async (req, res) => {
           from: 'teams',
           localField: 'teams',
           foreignField: '_id',
-          as: 'teams'
+          as: 'teams',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'players',
+                localField: 'players',
+                foreignField: '_id',
+                as: 'players'
+              }
+            }
+          ]
         }
       }
     ]).toArray()
     result2.forEach(match => match.teams.forEach(team => teams2.push(team)))
     result2.forEach(match => matchIds.push(match._id))
+    const totalKills = []
+    const totalTeamKills = []
+    const tempMatchIds = matchIds.map(i => i?.toString())
+    result2?.forEach(i => {
+      i?.teams?.forEach(team => {
+        team?.players?.forEach(player => {
+          Object.keys(player.kills).forEach(i => {
+            if (tempMatchIds.includes(i.toString())) {
+              totalKills.push({
+                playerId: player?._id?.toString(),
+                matchId: i,
+                kills: player?.kills[i],
+                teamId: team?._id?.toString()
+              })
+            }
+          })
+        })
+      })
+    })
+    for (let i of totalKills) {
+      if (!totalTeamKills.find(j => j.id === i.teamId)) {
+        totalTeamKills.push({ id: i?.teamId, kills: i?.kills })
+      }
+      else {
+        const objIndex = totalTeamKills.findIndex(j => j?.id === i?.teamId)
+        const tempObj = structuredClone(totalTeamKills[objIndex])
+        tempObj.kills += i?.kills || 0
+        totalTeamKills.splice(objIndex, 1, tempObj)
+      }
+    }
     const newMatchIds = matchIds.map(id => id.toString())
     const filteredTeams = teams2.map(team => {
       const newTeam = structuredClone(team)
@@ -117,7 +157,9 @@ router.get('/overall', async (req, res) => {
     const sortedTeams = filteredTeams.sort((a, b) => b.points - a.points)
     let mergedTeams = []
     sortedTeams.forEach(team => {
-      if (!mergedTeams.some(mergedTeam => mergedTeam._id.toString() === team._id.toString())) mergedTeams.push(team)
+      const team2 = structuredClone(team)
+      team2._id = team._id.toString()
+      if (!mergedTeams.some(mergedTeam => mergedTeam._id.toString() === team._id.toString())) mergedTeams.push(team2)
       else {
         const arrIndex = mergedTeams.findIndex(mergedTeam => mergedTeam._id.toString() === team._id.toString())
         const objToBeReplaced = structuredClone(mergedTeams[arrIndex])
@@ -125,7 +167,13 @@ router.get('/overall', async (req, res) => {
         mergedTeams.splice(arrIndex, 1, objToBeReplaced)
       }
     })
-    return res.send(mergedTeams)
+    const mergedTeams2 = mergedTeams.map(i => {
+      const clonedObj = structuredClone(i)
+      clonedObj._id = i._id.toString()
+      clonedObj.kills = totalTeamKills.find(j => j.id === i._id).kills
+      return clonedObj
+    })
+    return res.send(mergedTeams2)
 
     const matches = []
     const players = []
