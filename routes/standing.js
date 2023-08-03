@@ -40,7 +40,19 @@ router.get('/match', async (req, res) => {
       newObj.rank = Number(index)
       return newObj
     })
-    res.json(newStandings)
+    const newStandingsWithKills = newStandings.map(i => {
+      const newObj = structuredClone(i)
+      newObj._id = i._id.toString()
+      let kills = 0
+      i?.players?.forEach(player => {
+        Object.keys(player?.kills).forEach(j => {
+          if (j.toString() === req.query['match-id']) kills += player.kills[j]
+        })
+      })
+      newObj.kills = kills
+      return newObj
+    })
+    res.json(newStandingsWithKills)
     // res.json(result)
     // result.at(0).teams.forEach(team => teams.push(team.name))
   } catch (e) {
