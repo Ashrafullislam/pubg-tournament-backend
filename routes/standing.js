@@ -185,7 +185,14 @@ router.get('/overall', async (req, res) => {
       clonedObj.kills = totalTeamKills.find(j => j.id === i._id).kills
       return clonedObj
     })
-    return res.send(mergedTeams2)
+    const mergedTeams3 = mergedTeams2.map(i => {
+      const clonedObj = structuredClone(i)
+      let rank = 0
+      result2.forEach(j => rank += Number(j[i._id]) || 0)
+      clonedObj.rank = rank
+      return clonedObj
+    })
+    return res.send(mergedTeams3)
 
     const matches = []
     const players = []
