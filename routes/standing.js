@@ -162,7 +162,7 @@ router.get('/overall', async (req, res) => {
       const pointsArray = Object.keys(newTeam?.points).map(point => ({ matchId: point, points: newTeam?.points?.[point] }))
       const newPointsArray = pointsArray.filter(arr => newMatchIds.includes(arr.matchId))
       newTeam._id = team._id
-      delete newTeam.players
+      // delete newTeam.players
       newTeam.points = newPointsArray.reduce((a, b) => ((a.points || a) + b.points), 0)
       return newTeam
     })
