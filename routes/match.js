@@ -2,8 +2,7 @@ import express from 'express'
 import { database } from '../models/database.js'
 import { ObjectId } from 'mongodb'
 
-const router = express.Router()
-
+const router = express.Router() ;
 async function getMatches(req, res) {
   const aggArray = [
     {
@@ -37,7 +36,6 @@ async function getMatches(req, res) {
     res.sendStatus(500)
   } finally {
   }
-
 }
 
 router.get('/', getMatches)
