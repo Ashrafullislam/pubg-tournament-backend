@@ -40,7 +40,19 @@ router.get('/match', async (req, res) => {
       newObj.rank = Number(index)
       return newObj
     })
-    res.json(newStandings)
+    const newStandingsWithKills = newStandings.map(i => {
+      const newObj = structuredClone(i)
+      newObj._id = i._id.toString()
+      let kills = 0
+      i?.players?.forEach(player => {
+        Object.keys(player?.kills).forEach(j => {
+          if (j.toString() === req.query['match-id']) kills += player.kills[j]
+        })
+      })
+      newObj.kills = kills
+      return newObj
+    })
+    res.json(newStandingsWithKills)
     // res.json(result)
     // result.at(0).teams.forEach(team => teams.push(team.name))
   } catch (e) {
@@ -150,7 +162,7 @@ router.get('/overall', async (req, res) => {
       const pointsArray = Object.keys(newTeam?.points).map(point => ({ matchId: point, points: newTeam?.points?.[point] }))
       const newPointsArray = pointsArray.filter(arr => newMatchIds.includes(arr.matchId))
       newTeam._id = team._id
-      delete newTeam.players
+      // delete newTeam.players
       newTeam.points = newPointsArray.reduce((a, b) => ((a.points || a) + b.points), 0)
       return newTeam
     })
@@ -173,7 +185,14 @@ router.get('/overall', async (req, res) => {
       clonedObj.kills = totalTeamKills.find(j => j.id === i._id).kills
       return clonedObj
     })
-    return res.send(mergedTeams2)
+    const mergedTeams3 = mergedTeams2.map(i => {
+      const clonedObj = structuredClone(i)
+      let rank = 0
+      result2.forEach(j => rank += Number(j[i._id]) || 0)
+      clonedObj.rank = rank
+      return clonedObj
+    })
+    return res.send(mergedTeams3)
 
     const matches = []
     const players = []
