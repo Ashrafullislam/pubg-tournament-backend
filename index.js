@@ -1,12 +1,19 @@
 import express from 'express'
+import http from 'http';
+import { Server } from 'socket.io';
 import cors from 'cors'
 import tournamentRouter from './routes/tournament.js'
 import matchRouter from './routes/match.js'
 import teamRouter from './routes/team.js'
 import stageRouter from './routes/group-stage.js'
 import standingRouter from './routes/standing.js'
+import { handleSocketConnection } from './socket-handler.js';
 
 const app = express()
+const server = http.createServer(app);
+const socketConnection = new Server(server);
+
+handleSocketConnection(socketConnection);
 
 app.use(cors())
 app.use(express.json())
@@ -20,4 +27,4 @@ app.get('/', (_req, res) => {
   res.send('Running...')
 })
 
-app.listen(8000, () => console.log('running...'))
+server.listen(8000, () => console.log('running...'))
