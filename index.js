@@ -11,7 +11,14 @@ import { handleSocketConnection } from './socket-handler.js';
 
 const app = express()
 const server = http.createServer(app);
-const socketConnection = new Server(server);
+const socketConnection = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: "*",
+    allowedHeaders: "*",
+    optionsSuccessStatus: 200,
+  }
+} );
 
 handleSocketConnection(socketConnection);
 

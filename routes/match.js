@@ -3,6 +3,34 @@ import { database } from '../models/database.js'
 import { ObjectId } from 'mongodb'
 
 const router = express.Router() ;
+
+router.get('/next', async (req, res) => {
+  console.log(req.query['match-id'],'match id find ')
+  try {
+    const result = await database.collection('matches').find().toArray()
+    const arrayWithDateAdded = result.map(match => {
+      const newMatch = structuredClone(match)
+      const date = newMatch.date.split('-').reverse().join('-')
+      const time = newMatch.time
+      const dateAndTime = new Date(date + 'T' + time)
+      newMatch.dateAndTime = dateAndTime
+      return newMatch
+    })
+    arrayWithDateAdded.sort((a, b) => b.dateAndTime - a.dateAndTime)
+    const currentMatchIndex = arrayWithDateAdded.findIndex(i => i._id === req.query['match-id'])
+
+    const removedDateAndTime = arrayWithDateAdded.map(match => {
+      const newMatch = structuredClone(match)
+      delete newMatch.dateAndTime
+      return newMatch
+    })
+    res.send(removedDateAndTime[currentMatchIndex + 1])
+  } catch (e) {
+    console.log(e)
+    res.sendStatus(500)
+  }
+})
+
 async function getMatches(req, res) {
   const aggArray = [
     {
@@ -24,7 +52,8 @@ async function getMatches(req, res) {
       }
     }
   ]
-
+   
+  console.log(req.params.id,'id')
   if (req.params.id) aggArray.splice(0, 0, { $match: { '_id': new ObjectId(req.params.id) } })
   else if (req.query['stage-id']) aggArray.splice(0, 0, { $match: { 'stage-id': new ObjectId(req.query['stage-id']) } })
 
@@ -177,29 +206,6 @@ router.put('/', async (req, res) => {
   }
 })
 
-router.get('/next', async (req, res) => {
-  try {
-    const result = await database.collection('matches').find().toArray()
-    const arrayWithDateAdded = result.map(match => {
-      const newMatch = structuredClone(match)
-      const date = newMatch.date.split('-').reverse().join('-')
-      const time = newMatch.time
-      const dateAndTime = new Date(date + 'T' + time)
-      newMatch.dateAndTime = dateAndTime
-      return newMatch
-    })
-    arrayWithDateAdded.sort((a, b) => b.dateAndTime - a.dateAndTime)
-    const currentMatchIndex = arrayWithDateAdded.findIndex(i => i._id === req.body['match-id'])
-    const removedDateAndTime = arrayWithDateAdded.map(match => {
-      const newMatch = structuredClone(match)
-      delete newMatch.dateAndTime
-      return newMatch
-    })
-    res.send(removedDateAndTime[currentMatchIndex + 1])
-  } catch (e) {
-    console.log(e)
-    res.sendStatus(500)
-  }
-})
+
 
 export default router
