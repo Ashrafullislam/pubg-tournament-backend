@@ -16,7 +16,7 @@ const app = express();
 app.use(morgan("dev"));
 
 const server = http.createServer(app);
-const socketConnection = new Server(server, {
+export const socketConnection = new Server(server, {
   cors: {
     origin: "*",
     methods: "*",

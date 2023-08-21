@@ -1,6 +1,8 @@
 import express from "express";
 import { ObjectId } from "mongodb";
 import collections from "../constants/collections.js";
+import { socketEvents } from "../constants/socket-events.js";
+import { socketConnection } from "../index.js";
 import { database } from "../models/database.js";
 
 const router = express.Router();
@@ -100,9 +102,12 @@ router.post("/", async (req, res) => {
 });
 
 router.post("/kills", async (req, res) => {
+  console.log("Kills calling.....");
   if (!req.body["match-id"] || !req.body["player-id"])
     return res.sendStatus(400);
   const objectKey = `kills.${req.body["match-id"]}`;
+
+  console.log("Team Id: ", req.body.teamId);
 
   try {
     const result = await database.collection("players").updateOne(
@@ -112,6 +117,46 @@ router.post("/kills", async (req, res) => {
       },
       { upsert: true }
     );
+
+    // update the summary
+    const summaryResult = await database
+      .collection(collections.SUMMARY)
+      .findOne({ matchId: req.body["match-id"] });
+
+    const teamIndex = summaryResult.teams.findIndex(
+      (team) => team._id.toString() === req.body.teamId
+    );
+
+    // update the team total kills
+    summaryResult.teams[teamIndex].totalKills =
+      req.body.type === "increase"
+        ? summaryResult.teams[teamIndex].totalKills + 1
+        : summaryResult.teams[teamIndex].totalKills - 1;
+
+    // save the updated summary
+    const updatedSummaryResult = await database
+      .collection(collections.SUMMARY)
+      .updateOne(
+        { matchId: req.body["match-id"] },
+        {
+          $set: { teams: summaryResult.teams },
+        },
+        { upsert: true }
+      );
+
+    // get the updated summary, only the teams that is req.body.teamId
+    const updatedSummary = await database
+      .collection(collections.SUMMARY)
+      .findOne({ matchId: req.body["match-id"] });
+
+    console.log("updated summary", updatedSummary?.teams[teamIndex]);
+
+    // send to the client via socket
+    socketConnection.emit(
+      socketEvents.UPDATE_KILLS,
+      updatedSummary?.teams[teamIndex]
+    );
+
     result?.acknowledged
       ? res.json({ success: true })
       : res.json({ success: false });
@@ -125,8 +170,6 @@ router.post("/add-team", async (req, res) => {
   const teams = structuredClone(req.body.teamsPayload.teams).map(
     (team) => new ObjectId(team)
   );
-
-  console.log("teams: ", req.body.teams);
 
   try {
     const result = await database.collection("matches").updateOne(
